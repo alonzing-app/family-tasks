@@ -391,7 +391,7 @@ function getColor(name) {
   return COLORS[Math.abs(h) % COLORS.length];
 }
 function pad(n) { return String(n).padStart(2,'0'); }
-const todayIdx = (new Date().getDay() + 1) % 7;
+const todayIdx = new Date().getDay();
 
 // ── State ──
 let S = {
