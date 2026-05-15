@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="משימות משפחה">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="shortcut icon" href="icon.png">
+<title>משימות משפחה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --border: #e8e6e0;
+    --border-light: #f0ede8;
+    --text-primary: #1a1916;
+    --text-secondary: #6b6860;
+    --text-tertiary: #a8a49e;
+    --green: #2d6a4f;
+    --green-bg: #eef5f1;
+    --green-border: #b7d5c7;
+    --red: #8b2e2e;
+    --red-bg: #fdf0f0;
+    --red-border: #e8bcbc;
+    --amber: #92500a;
+    --amber-bg: #fdf5eb;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --card-alt: #e8f4fd;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    direction: rtl;
+  }
+
+  .app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 18px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ccc; transition: background .4s;
+  }
+  .sync-dot.online { background: #52b788; }
+  .sync-dot.syncing { background: #f4a261; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .manage-btn {
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px; font-weight: 400;
+    color: var(--text-secondary);
+    background: none; border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    transition: all .15s;
+  }
+  .manage-btn:active { background: var(--border-light); }
+
+  /* ── Who bar ── */
+  .who-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 18px 12px;
+  }
+  .who-label {
+    font-size: 10px; font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+  .who-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: 'Heebo', sans-serif;
+    padding: 5px 13px; border-radius: 20px;
+    font-size: 13px; font-weight: 400;
+    border: 1px solid var(--border);
+    cursor: pointer; transition: all .15s;
+    background: var(--bg); color: var(--text-secondary);
+    user-select: none;
+  }
+  .chip.active { font-weight: 500; }
+  .chip:active { transform: scale(.96); }
+
+  /* ── Stats ── */
+  .stats {
+    display: flex; gap: 8px;
+    padding: 10px 18px;
+  }
+  .stat {
+    flex: 1; background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px; text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-num { font-size: 22px; font-weight: 600; line-height: 1; }
+  .stat-lbl { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+  /* ── Day tabs ── */
+  .day-tabs {
+    display: flex; overflow-x: auto;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 10px;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    font-family: 'Heebo', sans-serif;
+    flex-shrink: 0; padding: 10px 11px;
+    font-size: 13px; font-weight: 400;
+    border: none; background: none; cursor: pointer;
+    color: var(--text-tertiary);
+    border-bottom: 2px solid transparent;
+    transition: all .15s; position: relative;
+    white-space: nowrap;
+  }
+  .day-tab.active { color: var(--text-primary); font-weight: 600; border-bottom-color: var(--text-primary); }
+  .day-tab .dot {
+    position: absolute; top: 6px; left: 7px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #52b788;
+  }
+
+  /* ── Tasks ── */
+  .tasks { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+  .task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    transition: opacity .2s;
+  }
+  .task-card.all-done { opacity: .6; }
+
+  .task-name {
+    font-size: 15px; font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 9px;
+    line-height: 1.3;
+  }
+  .task-name.struck { text-decoration: line-through; color: var(--text-tertiary); }
+
+  .task-done-icon {
+    float: left; margin-top: 1px;
+    color: #52b788; font-size: 16px;
+  }
+
+  .assignees {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    margin-bottom: 9px; min-height: 24px; align-items: center;
+  }
+  .atag {
+    font-size: 12px; padding: 3px 9px;
+    border-radius: 20px; display: inline-flex;
+    align-items: center; gap: 4px; font-weight: 400;
+  }
+  .atag.done-tag { text-decoration: line-through; opacity: .55; }
+  .atag-check { font-size: 10px; }
+  .empty-tag { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+
+  .task-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  .btn {
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px; font-weight: 400;
+    padding: 5px 11px; border-radius: 20px;
+    cursor: pointer; border: 1px solid;
+    display: inline-flex; align-items: center; gap: 4px;
+    transition: all .12s; user-select: none;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-join { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+  .btn-leave { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+  .btn-done { background: var(--green-bg); border-color: var(--green-border); color: var(--green); font-weight: 500; }
+  .btn-undone { background: var(--bg); border-color: var(--border); color: var(--text-secondary); }
+
+  .gcal-hint {
+    margin-top: 7px; font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-tertiary); font-size: 14px;
+  }
+
+  /* ── Winner banner ── */
+  .winner-banner {
+    background: #c0392b;
+    color: white;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    animation: flashRed 1.2s infinite;
+  }
+  @keyframes flashRed {
+    0%,100% { background: #c0392b; }
+    50% { background: #e74c3c; }
+  }
+
+  /* ── Scoreboard ── */
+  .scoreboard {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+  }
+  .scoreboard-title {
+    font-size: 10px; font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 7px;
+  }
+  .score-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .score-name { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .score-pts {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary);
+  }
+  .score-bar-wrap {
+    flex: 1; margin: 0 10px;
+    height: 5px; background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .score-bar { height: 100%; border-radius: 3px; background: #52b788; transition: width .4s; }
+
+  /* ── Admin modal ── */
+  .admin-input { display: flex; gap: 6px; margin-bottom: 10px; }
+  .pts-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pts-row span { flex: 1; font-size: 14px; }
+  .pts-input { width: 70px; font-size: 14px; text-align: center; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.35);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 100;
+    animation: fadeIn .15s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 430px;
+    padding: 20px 18px 40px;
+    max-height: 80vh; overflow-y: auto;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 50%; width: 30px; height: 30px;
+    cursor: pointer; font-size: 16px; display: flex;
+    align-items: center; justify-content: center;
+    color: var(--text-secondary); transition: all .15s;
+  }
+  .modal-close:active { background: var(--border); }
+
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+  .divider { border: none; border-top: 1px solid var(--border-light); margin: 16px 0; }
+
+  .modal input[type=text],
+  .modal input[type=time] {
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px; padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text-primary);
+    outline: none; transition: border-color .15s;
+    direction: rtl;
+  }
+  .modal input:focus { border-color: #aaa; }
+
+  .member-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .member-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .member-name { flex: 1; font-size: 14px; }
+
+  .task-edit-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .task-edit-row input[type=text] { flex: 1; }
+  .task-edit-row input[type=time] { width: 90px; flex-shrink: 0; }
+
+  .del-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-tertiary); font-size: 18px;
+    padding: 4px; display: flex; align-items: center;
+    transition: color .15s;
+  }
+  .del-btn:hover { color: var(--red); }
+
+  .add-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .add-row input[type=text] { flex: 1; }
+  .add-row input[type=time] { width: 90px; flex-shrink: 0; }
+
+  .add-btn, .save-btn {
+    font-family: 'Heebo', sans-serif;
+    width: 100%; padding: 10px;
+    font-size: 14px; font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer; transition: all .15s;
+  }
+  .add-btn {
+    background: var(--text-primary); color: #fff;
+    border: none; margin-top: 4px;
+  }
+  .add-btn:active { opacity: .85; }
+
+  /* ── Loading ── */
+  .loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    flex: 1; gap: 14px;
+    color: var(--text-tertiary); font-size: 14px;
+  }
+  .spinner {
+    width: 26px; height: 26px;
+    border: 2px solid var(--border);
+    border-top-color: var(--text-tertiary);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+    background: var(--text-primary); color: #fff;
+    border-radius: 20px; padding: 8px 16px;
+    font-size: 13px; white-space: nowrap;
+    z-index: 200; pointer-events: none;
+    opacity: 0; transition: opacity .2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── PWA splash padding ── */
+  @media (display-mode: standalone) {
+    .header { padding-top: env(safe-area-inset-top, 16px); }
+    .tasks { padding-bottom: calc(env(safe-area-inset-bottom, 10px) + 10px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    מתחבר לשרת...
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js"></script>
+<script>
+// ── Firebase ──
+firebase.initializeApp({
+  apiKey: "AIzaSyBVrFsKwAxA6HPajJ3SyyGToiW6Sofi-dE",
+  authDomain: "family-tasks-643cc.firebaseapp.com",
+  databaseURL: "https://family-tasks-643cc-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "family-tasks-643cc",
+  storageBucket: "family-tasks-643cc.firebasestorage.app",
+  messagingSenderId: "938038713749",
+  appId: "1:938038713749:web:a89d97ac7d3faf9844ea9c"
+});
+const db = firebase.database();
+
+// ── Constants ──
+const DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const COLORS = [
+  {bg:'#EEEDFE',border:'#534AB7',text:'#3C3489'},
+  {bg:'#E1F5EE',border:'#0F6E56',text:'#085041'},
+  {bg:'#FAECE7',border:'#993C1D',text:'#712B13'},
+  {bg:'#FBEAF0',border:'#993556',text:'#72243E'},
+  {bg:'#E6F1FB',border:'#185FA5',text:'#0C447C'},
+];
+const DEFAULT_TASKS = [
+  {id:'t1', name:'הוצאת כלבים – בוקר',    time:'', pts:10},
+  {id:'t2', name:'הוצאת כלבים – צהריים',  time:'', pts:10},
+  {id:'t3', name:'הוצאת כלבים – ערב',     time:'', pts:10},
+  {id:'t4', name:'הוצאת אשפה',             time:'', pts:5},
+  {id:'t5', name:'שאיבת רצפת סלון',        time:'', pts:15},
+  {id:'t6', name:'ניקוי חדרי שירותים',     time:'', pts:20},
+  {id:'t7', name:'ריקון אשפה',             time:'', pts:5},
+];
+const ADMIN_PASS = 'אבראקדברא54';
+
+function getColor(name) {
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % COLORS.length;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+const todayIdx = new Date().getDay();
+
+// ── State ──
+let S = {
+  members: ['אלון','אתי','סתיו','אור','יערה'],
+  tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+  slots: {},
+  user: localStorage.getItem('familyUser') || null,
+  day: todayIdx,
+  showManage: false,
+  showAdmin: false, adminPass: '', adminError: false,
+  editName: '', editTime: '', editDays: [], newMember: '',
+  connected: false, syncing: false, loaded: false,
+};
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg, dur=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ── Firebase sync ──
+let saveTimer;
+function save() {
+  S.syncing = true; render();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    db.ref('data').set({ members: S.members, tasks: S.tasks, slots: S.slots, weekReset: S.weekReset||0 })
+      .then(() => { S.syncing = false; render(); })
+      .catch(() => { S.syncing = false; showToast('שגיאת שמירה ❌'); render(); });
+  }, 500);
+}
+
+db.ref('.info/connected').on('value', snap => {
+  S.connected = snap.val() === true; render();
+});
+
+db.ref('data').on('value', snap => {
+  try {
+    const val = snap.val();
+    if (val) {
+      if (val.members && Array.isArray(val.members) && val.members.length) S.members = val.members;
+      if (val.tasks && Array.isArray(val.tasks) && val.tasks.length) S.tasks = val.tasks;
+      if (val.slots && typeof val.slots === 'object') S.slots = val.slots;
+      if (val.weekReset) S.weekReset = val.weekReset;
+    } else {
+      save();
+    }
+    checkWeekReset();
+  } catch(e) {
+    console.warn('Firebase data error:', e);
+  }
+  S.loaded = true; render();
+});
+
+function getSaturdayMidnight() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun ... 6=Sat
+  const daysUntilSat = (6 - day + 7) % 7;
+  const sat = new Date(now);
+  sat.setDate(now.getDate() + daysUntilSat);
+  sat.setHours(24, 0, 0, 0); // midnight end of Saturday
+  return sat.getTime();
+}
+
+function checkWeekReset() {
+  const resetTime = getSaturdayMidnight();
+  const lastReset = S.weekReset || 0;
+  const now = Date.now();
+  // If Saturday midnight has passed since last reset, reset slots
+  if (now >= resetTime && lastReset < resetTime) {
+    S.slots = {};
+    S.weekReset = resetTime;
+    save();
+  }
+}
+
+// ── Slot helpers ──
+function slotKey(tid, d) { return tid + '_' + d; }
+function getSlot(tid, d) {
+  const k = slotKey(tid, d);
+  if (!S.slots[k]) S.slots[k] = { a: [], c: [] };
+  if (!Array.isArray(S.slots[k].a)) S.slots[k].a = [];
+  if (!Array.isArray(S.slots[k].c)) S.slots[k].c = [];
+  return S.slots[k];
+}
+
+// ── Google Calendar export ──
+function exportGCal(task, dayIdx) {
+  try {
+    const today = new Date();
+    const curDay = today.getDay();
+    let diff = dayIdx - curDay; if (diff < 0) diff += 7;
+    const target = new Date(today); target.setDate(today.getDate() + diff);
+    const [hh, mm] = (task.time || '08:00').split(':').map(Number);
+    const start = new Date(target); start.setHours(hh, mm, 0, 0);
+    const end = new Date(start); end.setMinutes(end.getMinutes() + 30);
+    const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(task.name)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent('משימה משפחתית – ' + S.user)}`;
+    window.open(url, '_blank');
+  } catch(e) {}
+}
+
+// ── Actions ──
+function toggleAssign(tid, d) {
+  if (!S.user) { showToast('בחר/י קודם את שמך'); return; }
+  const sl = getSlot(tid, d);
+  const i = sl.a.indexOf(S.user);
+  if (i === -1) {
+    sl.a.push(S.user);
+    save(); render();
+    const task = S.tasks.find(t => t.id === tid);
+    if (task) {
+      setTimeout(() => {
+        if (confirm('להוסיף את "' + task.name + '" ל-Google Calendar שלך?')) {
+          exportGCal(task, d);
+        }
+      }, 100);
+    }
+  } else {
+    sl.a.splice(i, 1);
+    sl.c = sl.c.filter(x => x !== S.user);
+    showToast('הוסרת מהמשימה');
+    save(); render();
+  }
+}
+
+function toggleDone(tid, d) {
+  if (!S.user) return;
+  const sl = getSlot(tid, d);
+  if (!sl.a.includes(S.user)) return;
+  const i = sl.c.indexOf(S.user);
+  if (i === -1) { sl.c.push(S.user); showToast('✓ סומן כהושלם'); }
+  else sl.c.splice(i, 1);
+  save(); render();
+}
+
+function addTask() {
+  const n = S.editName.trim(); if (!n) return;
+  const days = S.editDays && S.editDays.length > 0 ? S.editDays : null;
+  S.tasks.push({ id: 't' + Date.now(), name: n, time: S.editTime || '', days: days });
+  S.editName = ''; S.editTime = ''; S.editDays = [];
+  save(); render();
+}
+
+function delTask(id) {
+  S.tasks = S.tasks.filter(t => t.id !== id);
+  Object.keys(S.slots).forEach(k => { if (k.startsWith(id + '_')) delete S.slots[k]; });
+  save(); render();
+}
+
+function addMember() {
+  const n = S.newMember.trim();
+  if (!n || S.members.includes(n)) return;
+  S.members.push(n); S.newMember = '';
+  save(); render();
+}
+
+function delMember(name) {
+  S.members = S.members.filter(m => m !== name);
+  Object.values(S.slots).forEach(sl => {
+    sl.a = sl.a.filter(x => x !== name);
+    sl.c = sl.c.filter(x => x !== name);
+  });
+  if (S.user === name) { S.user = null; localStorage.removeItem('familyUser'); }
+  save(); render();
+}
+
+function updateTaskField(id, field, val) {
+  const t = S.tasks.find(x => x.id === id); if (t) t[field] = val;
+  clearTimeout(saveTimer); saveTimer = setTimeout(save, 1500);
+}
+
+function selectUser(name) {
+  S.user = name;
+  localStorage.setItem('familyUser', name);
+  render();
+}
+
+// ── Stats ──
+function taskVisibleOnDay(task, d) {
+  if (!task.days || task.days.length === 0) return true;
+  return task.days.includes(d);
+}
+function weekStats() {
+  let total = 0, done = 0;
+  S.tasks.forEach(t => DAYS.forEach((_, d) => {
+    if (!taskVisibleOnDay(t, d)) return;
+    const sl = getSlot(t.id, d);
+    total += sl.a.length; done += sl.c.length;
+  }));
+  return { total, done, pct: total ? Math.round(done / total * 100) : 0 };
+}
+function dayHasDone(d) { return S.tasks.some(t => taskVisibleOnDay(t, d) && getSlot(t.id, d).c.length > 0); }
+
+// ── Day helpers ──
+function toggleTaskDay(tid, d) {
+  const t = S.tasks.find(x => x.id === tid); if (!t) return;
+  if (!t.days) t.days = [];
+  const i = t.days.indexOf(d);
+  if (i === -1) t.days.push(d); else t.days.splice(i, 1);
+  save(); render();
+}
+function checkAdminPass() {
+  if (S.adminPass === ADMIN_PASS) {
+    S.adminUnlocked = true;
+    S.adminError = false;
+  } else {
+    S.adminError = true;
+  }
+  render();
+}
+
+function toggleEditDay(d) {
+  if (!S.editDays) S.editDays = [];
+  const i = S.editDays.indexOf(d);
+  if (i === -1) S.editDays.push(d); else S.editDays.splice(i, 1);
+  render();
+}
+
+// ── Score helpers ──
+function getUserScore(user) {
+  let pts = 0;
+  S.tasks.forEach(t => {
+    DAYS.forEach((_, d) => {
+      const sl = getSlot(t.id, d);
+      if (sl.c.includes(user)) pts += (t.pts || 0);
+    });
+  });
+  return pts;
+}
+
+function getAllScores() {
+  return S.members.map(m => ({ name: m, pts: getUserScore(m) }))
+    .sort((a, b) => b.pts - a.pts);
+}
+
+function showWinnerBanner() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun,5=Fri,6=Sat
+  const hour = now.getHours();
+  // Show from Friday 17:00 until Saturday midnight
+  if (day === 5 && hour >= 17) return true;
+  if (day === 6) return true;
+  return false;
+}
+
+function getWinner() {
+  const scores = getAllScores();
+  if (!scores.length || scores[0].pts === 0) return null;
+  return scores[0];
+}
+
+function updateTaskPts(id, pts) {
+  const t = S.tasks.find(x => x.id === id);
+  if (t) t.pts = parseInt(pts) || 0;
+  clearTimeout(saveTimer); saveTimer = setTimeout(save, 1500);
+}
+
+// ── Render ──
+function render() {
+  if (!S.loaded) return;
+  const app = document.getElementById('app');
+  const st = weekStats();
+
+  const winner = getWinner();
+  const showWinner = showWinnerBanner() && winner;
+  const scores = getAllScores();
+  const maxPts = scores.length ? scores[0].pts : 1;
+
+  let html = `
+    ${showWinner ? `<div class="winner-banner">🏆 ${winner.name} השיג/ה ${winner.pts} נקודות במהלך השבוע האחרון והוא/היא המנצח/ת השבועי/ת!!! 🏆</div>` : ''}
+    <div class="header">
+      <div class="header-left">
+        <h1>משימות משפחה</h1>
+        <span class="sync-dot ${S.connected ? (S.syncing ? 'syncing' : 'online') : ''}"
+              title="${S.connected ? (S.syncing ? 'מסנכרן' : 'מחובר') : 'לא מחובר'}"></span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="manage-btn" onclick="S.showAdmin=true;S.adminPass='';S.adminError=false;render()" title="ניהול ניקוד">★</button>
+        <button class="manage-btn" onclick="S.showManage=true;render()">⚙ ניהול</button>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="scoreboard-title">ניקוד שבועי</div>
+      ${scores.map((s, i) => {
+        const col = getColor(s.name);
+        const barW = maxPts > 0 ? Math.round(s.pts / maxPts * 100) : 0;
+        const medal = i===0&&s.pts>0?'🥇':i===1&&s.pts>0?'🥈':i===2&&s.pts>0?'🥉':'';
+        return `<div class="score-row">
+          <span class="score-name">
+            <span style="width:8px;height:8px;border-radius:50%;background:${col.border};display:inline-block"></span>
+            ${s.name} ${medal}
+          </span>
+          <div class="score-bar-wrap"><div class="score-bar" style="width:${barW}%"></div></div>
+          <span class="score-pts">${s.pts}</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="who-bar">
+      <div class="who-label">מי אתה/את?</div>
+      <div class="who-chips">
+        ${S.members.map(m => {
+          const col = getColor(m), act = S.user === m;
+          return `<div class="chip${act?' active':''}"
+            style="${act ? `background:${col.bg};border-color:${col.border};color:${col.text}` : ''}"
+            onclick="selectUser('${m}')">${m}</div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-num">${st.total}</div><div class="stat-lbl">שיבוצים</div></div>
+      <div class="stat"><div class="stat-num">${st.done}</div><div class="stat-lbl">הושלמו</div></div>
+      <div class="stat"><div class="stat-num">${st.pct}%</div><div class="stat-lbl">השלמה</div></div>
+    </div>
+
+    <div class="day-tabs">
+      ${DAYS.map((d, i) => `
+        <button class="day-tab${S.day===i?' active':''}" onclick="S.day=${i};render()">
+          ${d}${dayHasDone(i) ? '<span class="dot"></span>' : ''}
+        </button>`).join('')}
+    </div>
+
+    <div class="tasks">`;
+
+  const visibleTasks = S.tasks.filter(t => taskVisibleOnDay(t, S.day));
+  if (!visibleTasks.length) {
+    html += `<div class="empty-state">אין משימות להיום — הוסף דרך ניהול</div>`;
+  } else {
+    visibleTasks.forEach((task, idx) => {
+      const sl = getSlot(task.id, S.day);
+      const iMine  = S.user && sl.a.includes(S.user);
+      const iDone  = S.user && sl.c.includes(S.user);
+      const allDone = sl.a.length > 0 && sl.a.every(x => sl.c.includes(x));
+      const isSpecial = task.days && task.days.length > 0;
+      const altBg = idx % 2 === 1 ? 'background:#e8f4fd;' : '';
+
+      html += `
+        <div class="task-card${allDone ? ' all-done' : ''}" style="${altBg}">
+          <div class="task-name${allDone ? ' struck' : ''}">
+            ${allDone ? `<span class="task-done-icon">✓</span>` : ''}
+            ${task.name}
+            <span style="font-size:11px;font-weight:400;color:#888;float:left;display:flex;gap:4px;align-items:center">
+              ${isSpecial ? `<span style="background:#f0f0f0;border-radius:8px;padding:1px 5px">חריגה</span>` : ''}
+              <span style="background:#e8f4fd;color:#1a6a9a;border-radius:8px;padding:1px 6px">★ ${task.pts||0}</span>
+            </span>
+          </div>
+
+          <div class="assignees">
+            ${sl.a.length === 0
+              ? `<span class="empty-tag">אף אחד לא שובץ עדיין</span>`
+              : sl.a.map(a => {
+                  const col = getColor(a), done = sl.c.includes(a);
+                  return `<span class="atag${done?' done-tag':''}"
+                    style="background:${col.bg};color:${col.text};border:1px solid ${col.border}40">
+                    ${done ? `<span class="atag-check">✓</span>` : ''} ${a}
+                  </span>`;
+                }).join('')
+            }
+          </div>
+
+          <div class="task-actions">
+            ${S.user ? `
+              <button class="btn ${iMine?'btn-leave':'btn-join'}"
+                onclick="toggleAssign('${task.id}',${S.day})">
+                ${iMine ? '✕ הסר' : '+ הצטרף/י'}
+              </button>
+              ${iMine ? `
+                <button class="btn ${iDone?'btn-done':'btn-undone'}"
+                  onclick="toggleDone('${task.id}',${S.day})">
+                  ${iDone ? '✓ הושלם' : '◯ סמן הושלם'}
+                </button>` : ''}
+            ` : ''}
+          </div>
+        </div>`;
+    });
+  }
+
+  html += `</div>`;
+
+  // ── Admin modal (points) ──
+  if (S.showAdmin) {
+    if (!S.adminUnlocked) {
+      html += `
+        <div class="modal-overlay" onclick="if(event.target===this){S.showAdmin=false;render()}">
+          <div class="modal">
+            <div class="modal-header">
+              <span class="modal-title">ניהול ניקוד — כניסת מנהל</span>
+              <button class="modal-close" onclick="S.showAdmin=false;render()">✕</button>
+            </div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px">הזן סיסמת מנהל:</div>
+            <div class="admin-input">
+              <input type="password" placeholder="סיסמה..." style="flex:1;font-size:14px"
+                value="${S.adminPass||''}"
+                oninput="S.adminPass=this.value"
+                onkeydown="if(event.key==='Enter')checkAdminPass()">
+              <button class="add-btn" style="width:auto;padding:8px 14px" onclick="checkAdminPass()">כניסה</button>
+            </div>
+            ${S.adminError ? `<div style="color:#c0392b;font-size:13px">סיסמה שגויה</div>` : ''}
+          </div>
+        </div>`;
+    } else {
+      html += `
+        <div class="modal-overlay" onclick="if(event.target===this){S.showAdmin=false;S.adminUnlocked=false;render()}">
+          <div class="modal">
+            <div class="modal-header">
+              <span class="modal-title">ניהול ניקוד</span>
+              <button class="modal-close" onclick="S.showAdmin=false;S.adminUnlocked=false;render()">✕</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:12px">קבע ניקוד לכל משימה (נקודות על השלמה)</div>
+            ${S.tasks.map(t => `
+              <div class="pts-row">
+                <span>${t.name}</span>
+                <input class="pts-input" type="number" min="0" max="999" value="${t.pts||0}"
+                  oninput="updateTaskPts('${t.id}',this.value)"
+                  style="border:1px solid var(--border);border-radius:6px;padding:5px;background:var(--bg)">
+                <span style="font-size:12px;color:var(--text-tertiary)">נק'</span>
+              </div>`).join('')}
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-light)">
+              <button class="add-btn" style="background:#c0392b" onclick="if(confirm('לאפס את כל הניקוד השבועי?')){S.slots={};S.weekReset=Date.now();save();showToast('הניקוד אופס ✓');}">
+                🔄 אפס ניקוד עכשיו
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Manage modal ──
+  if (S.showManage) {
+    html += `
+      <div class="modal-overlay" onclick="if(event.target===this){S.showManage=false;render()}">
+        <div class="modal">
+          <div class="modal-header">
+            <span class="modal-title">ניהול</span>
+            <button class="modal-close" onclick="S.showManage=false;render()">✕</button>
+          </div>
+
+          <div class="section-label">בני המשפחה</div>
+          ${S.members.map(m => {
+            const col = getColor(m);
+            return `<div class="member-row">
+              <span class="member-dot" style="background:${col.border}"></span>
+              <span class="member-name">${m}</span>
+              <button class="del-btn" onclick="delMember('${m}')">🗑</button>
+            </div>`;
+          }).join('')}
+          <div class="add-row" style="margin-top:6px">
+            <input type="text" placeholder="שם חדש..."
+              value="${S.newMember}"
+              oninput="S.newMember=this.value"
+              onkeydown="if(event.key==='Enter')addMember()">
+            <button class="btn btn-join" onclick="addMember()" style="white-space:nowrap">+ הוסף</button>
+          </div>
+
+          <hr class="divider">
+          <div class="section-label">משימות</div>
+
+          ${S.tasks.map(t => `
+            <div class="task-edit-row" style="flex-wrap:wrap;gap:4px;margin-bottom:10px">
+              <input type="text" value="${t.name}" style="flex:1;min-width:120px"
+                oninput="updateTaskField('${t.id}','name',this.value)">
+              <input type="time" value="${t.time||''}" style="width:90px"
+                oninput="updateTaskField('${t.id}','time',this.value)">
+              <button class="del-btn" onclick="delTask('${t.id}')">🗑</button>
+              <div style="width:100%;display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
+                <span style="font-size:11px;color:#888;align-self:center;margin-left:4px">ימים:</span>
+                ${['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'].map((dn,di) => `
+                  <span onclick="toggleTaskDay('${t.id}',${di})"
+                    style="font-size:11px;padding:2px 7px;border-radius:10px;cursor:pointer;border:1px solid;
+                    background:${!(t.days&&t.days.length)?'#e8f4fd':(t.days.includes(di)?'#1a1916':'#f7f7f5')};
+                    color:${!(t.days&&t.days.length)?'#555':(t.days.includes(di)?'white':'#aaa')};
+                    border-color:${!(t.days&&t.days.length)?'#b3d8f5':(t.days.includes(di)?'#1a1916':'#ddd')}"
+                    title="${!(t.days&&t.days.length)?'כל הימים':''}">${dn}</span>`).join('')}
+                ${(t.days&&t.days.length)?'':'<span style="font-size:10px;color:#aaa;align-self:center">(כל הימים)</span>'}
+              </div>
+            </div>`).join('')}
+
+          <hr class="divider">
+          <div class="section-label">הוסף משימה</div>
+          <div class="add-row" style="margin-top:4px">
+            <input type="text" placeholder="שם המשימה..."
+              value="${S.editName}"
+              oninput="S.editName=this.value">
+            <input type="time" value="${S.editTime}"
+              oninput="S.editTime=this.value">
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;margin-top:4px;align-items:center">
+            <span style="font-size:11px;color:#888">ימים ספציפיים (ריק = כל יום):</span>
+            ${['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'].map((dn,di) => `
+              <span onclick="toggleEditDay(${di})"
+                style="font-size:11px;padding:3px 8px;border-radius:10px;cursor:pointer;border:1px solid;
+                background:${(S.editDays||[]).includes(di)?'#1a1916':'#f7f7f5'};
+                color:${(S.editDays||[]).includes(di)?'white':'#888'};
+                border-color:${(S.editDays||[]).includes(di)?'#1a1916':'#ddd'}">${dn}</span>`).join('')}
+          </div>
+          <button class="add-btn" onclick="addTask()">+ הוסף משימה</button>
+        </div>
+      </div>`;
+  }
+
+  app.innerHTML = html;
+}
+</script>
+</body>
+</html>
